@@ -457,8 +457,8 @@ window.addEventListener('load', () => {
         name = name.replace(/</g, "&lt;").replace(/>/g, "&gt;");
         div.classList.add('m-2');
         div.innerHTML = `
-        <p class="mt-0 mb-1 mx-0 p-0 text-light">Kepada Yth Bapak/Ibu/Saudara/i</p>
-        <h2 class="text-light">${name}</h2>
+        <p class="mt-0 mb-1 mx-0 p-0 text-dark">Kepada Yth Bapak/Ibu/Saudara/i</p>
+        <h2 class="text-dark">${name}</h2>
         `;
 
         document.getElementById('formnama').value = name;
