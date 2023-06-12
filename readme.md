@@ -2,12 +2,13 @@
 
 ##### Demo: https://dewanakl.github.io/undangan/?to=Teman+teman+semua
 
-##### Deployment API: https://youtu.be/WOVyAw1UAtI
+##### Deployment API Vercel: [https://dikit.my.id/DeploymentApiVercel](https://dikit.my.id/DeploymentApiVercel)
+##### Deployment API Hosting: [https://dikit.my.id/DeploymentApiHosting](https://dikit.my.id/DeploymentApiHosting)
 
 ### Tech stack
-- Bootstrap 5.3
+- Bootstrap 5.3.0
 - AOS 2.3.4
-- Fontawsome 6.2.1
+- Fontawsome 6.4.0
 - Google Fonts
 - Vanilla JS
 

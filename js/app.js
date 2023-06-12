@@ -1,7 +1,7 @@
 const audio = (() => {
     var instance = undefined;
 
-    var getInstance = function () {
+    var getInstance = () => {
         if (!instance) {
             instance = new Audio();
             instance.autoplay = true;
@@ -17,10 +17,10 @@ const audio = (() => {
     };
 
     return {
-        play: function () {
+        play: () => {
             getInstance().play();
         },
-        pause: function () {
+        pause: () => {
             getInstance().pause();
         }
     };
@@ -28,12 +28,12 @@ const audio = (() => {
 
 const escapeHtml = (unsafe) => {
     return unsafe
-        .replaceAll('&', '&amp;')
-        .replaceAll('<', '&lt;')
-        .replaceAll('>', '&gt;')
-        .replaceAll('"', '&quot;')
-        .replaceAll("'", '&#039;');
-}
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+};
 
 const salin = (btn) => {
     navigator.clipboard.writeText(btn.getAttribute('data-nomer'));
@@ -44,6 +44,7 @@ const salin = (btn) => {
     setTimeout(() => {
         btn.innerHTML = tmp;
         btn.disabled = false;
+        btn.focus();
     }, 1500);
 };
 
@@ -69,7 +70,6 @@ const timer = () => {
 };
 
 const buka = async () => {
-    document.getElementById('loading').style.display = 'none';
     document.getElementById('tombol-musik').style.display = 'block';
     audio.play();
     AOS.init();
@@ -107,9 +107,6 @@ const balasan = async (button) => {
     let tmp = button.innerText;
     button.innerText = 'Loading...';
 
-    const BALAS = document.getElementById('balasan');
-    BALAS.innerHTML = null;
-
     let id = button.getAttribute('data-uuid').toString();
     let token = localStorage.getItem('token') ?? '';
 
@@ -118,6 +115,11 @@ const balasan = async (button) => {
         window.location.reload();
         return;
     }
+
+    const BALAS = document.getElementById('balasan');
+    BALAS.innerHTML = renderLoading(1);
+    document.getElementById('hadiran').style.display = 'none';
+    document.getElementById('labelhadir').style.display = 'none';
 
     const REQ = {
         method: 'GET',
@@ -133,14 +135,12 @@ const balasan = async (button) => {
         .then((res) => {
             if (res.code == 200) {
                 document.getElementById('kirim').style.display = 'none';
-                document.getElementById('hadiran').style.display = 'none';
-                document.getElementById('labelhadir').style.display = 'none';
                 document.getElementById('batal').style.display = 'block';
                 document.getElementById('kirimbalasan').style.display = 'block';
                 document.getElementById('idbalasan').value = id;
 
                 BALAS.innerHTML = `
-                <div class="card-body bg-light shadow p-2 my-2 rounded-4">
+                <div class="card-body bg-light shadow p-3 my-2 rounded-4">
                     <div class="d-flex flex-wrap justify-content-between align-items-center">
                         <p class="text-dark text-truncate m-0 p-0" style="font-size: 0.95rem;">
                             <strong>${escapeHtml(res.data.nama)}</strong>
@@ -162,7 +162,10 @@ const balasan = async (button) => {
                 alert(res.error[0]);
             }
         })
-        .catch((err) => alert(err));
+        .catch((err) => {
+            resetForm();
+            alert(err);
+        });
 
     document.getElementById('ucapan').scrollIntoView({ behavior: 'smooth' });
     button.disabled = false;
@@ -234,7 +237,10 @@ const kirimBalasan = async () => {
                 alert(res.error[0]);
             }
         })
-        .catch((err) => alert(err));
+        .catch((err) => {
+            resetForm();
+            alert(err);
+        });
 
     if (isSuccess) {
         await ucapan();
@@ -252,7 +258,7 @@ const innerCard = (comment) => {
 
     comment.forEach((data) => {
         result += `
-        <div class="card-body border-start bg-light py-2 ps-2 pe-0 my-2 ms-3 me-0" id="${data.uuid}">
+        <div class="card-body border-start bg-light py-2 ps-2 pe-0 my-2 ms-2 me-0" id="${data.uuid}">
             <div class="d-flex flex-wrap justify-content-between align-items-center">
                 <p class="text-dark text-truncate m-0 p-0" style="font-size: 0.95rem;">
                     <strong>${escapeHtml(data.nama)}</strong>
@@ -272,9 +278,8 @@ const innerCard = (comment) => {
 const renderCard = (data) => {
     const DIV = document.createElement('div');
     DIV.classList.add('mb-3');
-    DIV.setAttribute('data-aos', 'fade-up');
     DIV.innerHTML = `
-    <div class="card-body bg-light shadow p-2 m-0 rounded-4" id="${data.uuid}">
+    <div class="card-body bg-light shadow p-3 m-0 rounded-4" id="${data.uuid}">
         <div class="d-flex flex-wrap justify-content-between align-items-center">
             <p class="text-dark text-truncate m-0 p-0" style="font-size: 0.95rem;">
                 <strong class="me-1">${escapeHtml(data.nama)}</strong>${data.hadir ? '<i class="fa-solid fa-circle-check text-success"></i>' : '<i class="fa-solid fa-circle-xmark text-danger"></i>'}
@@ -289,9 +294,102 @@ const renderCard = (data) => {
     return DIV;
 };
 
+const renderLoading = (num) => {
+    let hasil = '';
+    for (let index = 0; index < num; index++) {
+        hasil += `
+        <div class="mb-3">
+            <div class="card-body bg-light shadow p-3 m-0 rounded-4">
+                <div class="d-flex flex-wrap justify-content-between align-items-center placeholder-glow">
+                    <span class="placeholder bg-secondary col-5"></span>
+                    <span class="placeholder bg-secondary col-3"></span>
+                </div>
+                <hr class="text-dark my-1">
+                <p class="card-text placeholder-glow">
+                    <span class="placeholder bg-secondary col-6"></span>
+                    <span class="placeholder bg-secondary col-5"></span>
+                    <span class="placeholder bg-secondary col-12"></span>
+                </p>
+            </div>
+        </div>`;
+    }
+
+    return hasil;
+}
+
+const pagination = (() => {
+
+    const perPage = 10;
+    var pageNow = 0;
+    var resultData = 0;
+
+    var disabledPrevious = () => {
+        document.getElementById('previous').classList.add('disabled');
+    };
+
+    var disabledNext = () => {
+        document.getElementById('next').classList.add('disabled');
+    };
+
+    var buttonAction = async (button) => {
+        let tmp = button.innerHTML;
+        button.disabled = true;
+        button.innerHTML = `<span class="spinner-border spinner-border-sm me-1"></span>Loading...`;
+        await ucapan();
+        button.disabled = false;
+        button.innerHTML = tmp;
+        document.getElementById('daftarucapan').scrollIntoView({ behavior: 'smooth' });
+    };
+
+    return {
+        getPer: () => {
+            return perPage;
+        },
+        getNext: () => {
+            return pageNow;
+        },
+        reset: async () => {
+            pageNow = 0;
+            resultData = 0;
+            await ucapan();
+            document.getElementById('next').classList.remove('disabled');
+            disabledPrevious();
+        },
+        setResultData: (len) => {
+            resultData = len;
+            if (resultData < perPage) {
+                disabledNext();
+            }
+        },
+        previous: async (button) => {
+            if (pageNow < 0) {
+                disabledPrevious();
+            } else {
+                pageNow -= perPage;
+                disabledNext();
+                await buttonAction(button);
+                document.getElementById('next').classList.remove('disabled');
+                if (pageNow <= 0) {
+                    disabledPrevious();
+                }
+            }
+        },
+        next: async (button) => {
+            if (resultData < perPage) {
+                disabledNext();
+            } else {
+                pageNow += perPage;
+                disabledPrevious();
+                await buttonAction(button);
+                document.getElementById('previous').classList.remove('disabled');
+            }
+        }
+    };
+})();
+
 const ucapan = async () => {
     const UCAPAN = document.getElementById('daftarucapan');
-    UCAPAN.innerHTML = `<div class="text-center"><span class="spinner-border spinner-border-sm me-1"></span>Loading...</div>`;
+    UCAPAN.innerHTML = renderLoading(pagination.getPer());
     let token = localStorage.getItem('token') ?? '';
 
     if (token.length == 0) {
@@ -309,12 +407,13 @@ const ucapan = async () => {
         }
     };
 
-    await fetch(document.querySelector('body').getAttribute('data-url') + '/api/comment', REQ)
+    await fetch(document.querySelector('body').getAttribute('data-url') + `/api/comment?per=${pagination.getPer()}&next=${pagination.getNext()}`, REQ)
         .then((res) => res.json())
         .then((res) => {
             if (res.code == 200) {
                 UCAPAN.innerHTML = null;
                 res.data.forEach((data) => UCAPAN.appendChild(renderCard(data)));
+                pagination.setResultData(res.data.length);
 
                 if (res.data.length == 0) {
                     UCAPAN.innerHTML = `<div class="h6 text-center">Tidak ada data</div>`;
@@ -335,7 +434,7 @@ const ucapan = async () => {
 };
 
 const login = async () => {
-    document.getElementById('daftarucapan').innerHTML = `<div class="text-center"><span class="spinner-border spinner-border-sm me-1"></span>Loading...</div>`;
+    document.getElementById('daftarucapan').innerHTML = renderLoading(pagination.getPer());
     let body = document.querySelector('body');
 
     const REQ = {
@@ -427,7 +526,7 @@ const kirim = async () => {
         .then((res) => {
             if (res.code == 201) {
                 resetForm();
-                ucapan();
+                pagination.reset();
             }
 
             if (res.error.length != 0) {
@@ -440,10 +539,87 @@ const kirim = async () => {
                 alert(res.error[0]);
             }
         })
-        .catch((err) => alert(err));
+        .catch((err) => {
+            resetForm();
+            alert(err);
+        });
 
     document.getElementById('kirim').disabled = false;
     document.getElementById('kirim').innerHTML = tmp;
+};
+
+const progressBar = (() => {
+    let bar = document.getElementById('bar');
+
+    let clear = null;
+    let second = 1;
+    let counter = 1;
+    let untilOneHundred = parseInt(bar.style.width.replace('%', ''));
+
+    clear = setInterval(() => {
+
+        if (untilOneHundred < 100) {
+            untilOneHundred = (counter + (untilOneHundred / 10)) / (second + (untilOneHundred / 100));
+            setNum(untilOneHundred);
+        } else {
+            clearInterval(clear);
+        }
+
+        if (counter % 100 == 0) {
+            second += 1;
+        }
+
+        counter += 1;
+    }, 10);
+
+    let setNum = (num) => {
+        bar.style.width = num + "%";
+        bar.innerText = Math.floor(num) + "%";
+    };
+
+    return {
+        stop: () => {
+            clearInterval(clear);
+            setNum(100.0);
+        }
+    };
+})();
+
+const opacity = () => {
+    let modal = new Promise((res) => {
+        let clear = null;
+        clear = setInterval(() => {
+            if (document.getElementById('exampleModal').classList.contains('show')) {
+                clearInterval(clear);
+                res();
+            }
+        }, 100);
+    });
+
+    modal.then(() => {
+        progressBar.stop();
+
+        let op = parseInt(document.getElementById('loading').style.opacity);
+        let clear = null;
+
+        clear = setInterval(() => {
+            if (op >= 0) {
+                op -= 0.025;
+                document.getElementById('loading').style.opacity = op;
+            } else {
+                clearInterval(clear);
+                document.getElementById('loading').remove();
+                document.getElementById('exampleModal').classList.add('fade');
+            }
+        }, 10);
+    });
+};
+
+const modalFoto = (btn) => {
+    let modal = new bootstrap.Modal('#modalFoto');
+    let img = document.getElementById('showModalFoto');
+    img.src = btn.src;
+    modal.show();
 };
 
 window.addEventListener('load', () => {
@@ -454,11 +630,10 @@ window.addEventListener('load', () => {
         document.getElementById('namatamu').remove();
     } else {
         let div = document.createElement('div');
-        name = name.replace(/</g, "&lt;").replace(/>/g, "&gt;");
         div.classList.add('m-2');
         div.innerHTML = `
         <p class="mt-0 mb-1 mx-0 p-0 text-dark">Kepada Yth Bapak/Ibu/Saudara/i</p>
-        <h2 class="text-dark">${name}</h2>
+        <h2 class="text-dark">${escapeHtml(name)}</h2>
         `;
 
         document.getElementById('formnama').value = name;
@@ -466,4 +641,5 @@ window.addEventListener('load', () => {
     }
 
     modal.show();
+    opacity();
 }, false);
